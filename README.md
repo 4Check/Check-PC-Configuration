@@ -1,10 +1,13 @@
-# ISSC
+# ISSC v.3
 Скрипт получения информации о состоянии компьютера
 
-Используется 2 модуля и 1 скрипт запуска 5 конфигурационных файлов:
+Конфигурационных состоит из:
 
 - [PSWriteExcel] - [разработка позаимствована из репозитория EvotecIT](https://github.com/EvotecIT/PSWriteExcel)
-- [ISSC_modules] - Собственная разработка с использованием функций найденных на просторах Интернет
+- [ISSC.AD.Lib] - [Модуль получение данных из Active Directory. Автор:OneIdentity.com](https://www.oneidentity.com/products/active-roles/)
+- [ISSC.Main.Lib] - Модуль функций получение информации о состоянии компьютера на момент сканирования.
+- [ISSC.PowerShell.Archive.Lib] - [Модуль создания архивных файлов](https://docs.microsoft.com/ru-ru/powershell/module/microsoft.powershell.archive/?view=powershell-5.1)
+- [ISSC.Startup.Lib] - Модуль функции запуска сканирования состояния компьютеров
 
 - [AssetInspections.ps1] - Скрипт запуска проверок
 
@@ -14,7 +17,7 @@
 - [ListFile] - Это параметр из конфигурационного файла Param_xxx.ini. Содержит путь до текстового файла со списком файлов, которые необходимо проверить на доступность.
 - [ListKey] - Список веток реестра и параметров с ключами для проверки их присутствия на тестируемом ПК.
 
-# ToDo
+# В планах....
 
 ### HARD
 - [x] CPU (тип и частота)
@@ -37,11 +40,14 @@
 - [x] Список открытых портов и их владельцев
 - [x] Текущий пользователь (локальный вход) 
 ### Custom
-- [ ] Список пользователей в указанной в списке группе
+- [x] Список антивирусов установленных на ПК
+- [x] Получение информации после выполнения команды 'winsat formal -restart'
 - [x] Список файлов в каталогах по списку
 - [x] Список наличия или отсутствия файлов по списку
 - [x] Список значения ключей реестра по списку
 - [ ] Список значений параметров ГПО по списку
+- [ ] Архивирование результатов после сканирования
+- [ ] Список пользователей в указанной в списке группе
 
 ### Выгрузка результатов
 - [x] Excel - выгрузка без предустановленного ПО MS Office
@@ -63,7 +69,6 @@
 - [x] Get-FullDriveInfo - Функция получение информации о жестких дисках и USB дисках установленных в ПК
 - [x] Get-MicrosoftUpdates - Функция вывода установленых обновлений
 - [x] Get-LocalAdminMembers - Функция вывода пользователей в группе локальных администраторов
-- [ ] Get-LocalGroupMembers - Функция вывода локальных пользователей и групп. Разработана, но фактически не используется
 - [x] Get-shared - Функция вывода расшареных ресурсов
 - [x] Get-ComputerApplications - Функция вывода устновленного программного обеспечения
 - [x] get-iproute - Функция вывода постоянных маршрутов
@@ -79,44 +84,47 @@
 - [x] Get-ComputerService - Функция вывода состояния сервисов
 - [x] Start-Inventory - Функция сбора всех параметров и предоставления объектов для выгрухки в форматы Excel и JSON
 
-### Конфигурационный файл
+
+# Конфигурационный файл
 Передача переменных осуществляется из *.INI файлов, разделенных на два файла Main.Ini и Param_XXXX.ini
-#### Main.Ini находятся редко меняемые переменные:
+## Main.Ini находятся редко меняемые переменные:
 ```cmd
 [AsExcel]
 Enabled=true
-Path=C:\sys\KIRB_Remote\sys\script\DeveloperScript\dev\ISSC\Data\XLSX\
+Path=.\ISSC\Data\XLSX\
 DateFormat=yyyyMMdd-HH
 ;Тут может быть комментарий
 [AsJSON]
 Enabled=true
 Compress=false
-Path=C:\sys\KIRB_Remote\sys\script\DeveloperScript\dev\ISSC\Data\JSON\
+Path=.\ISSC\Data\JSON\
 DateFormat=yyyyMMdd-HH
 ;Тут может быть комментарий
 [Logging]
 ConsoleEnable=true
 ShowTime=true
-LogDir=C:\sys\KIRB_Remote\sys\script\DeveloperScript\dev\ISSC\Log\
+LogDir=.\ISSC\Log\
 LogFile=Loging.log
-ErrLogdir=C:\sys\KIRB_Remote\sys\script\DeveloperScript\dev\ISSC\Log\
+ErrLogdir=.\ISSC\Log\
 ErrLogFile=Error.log
 LogTimeFormat=HH:mm:ss yyyy/MM/dd
 ```
 
-#### Param_XXX.ini находяться оперативно изменяемые переменные:
+## Param_XXX.ini находяться оперативно изменяемые переменные:
 ```cmd
+;Файл конфигурации параметров проверки
+;
 [StandaloneWrk]
 Enabled=true
-ArrWrk=jmike
-;Тут может быть комментарий
+ArrWrk=wrk1,wrk2
+;
 [DomainWrk]
-Enabled=false
-CheckUO="OU=Osliq,OU=LTSC,OU=Users,OU=WorkStation,DC=ueb,DC=local"
-DCName="MT-DC01.ueb.local"
-;Тут может быть комментарий
+Enabled=true
+CheckUO="OU=OU_Computers,OU=OU_Groups,DC=NetBios,DC=Domain"
+DCName="my_dc.netbios.domain"
+;
 [CheckModule]
-ALL=false
+ALL=True
 SystemInfo=false
 DiskInfo=false
 NetStat=false
@@ -130,46 +138,47 @@ OSProcesses=false
 OSServices=false
 OSMissingDrivers=false
 OSLoggingUser=false
-;Тут может быть комментарий
+Antivirus=True
+SysPerform=True
+;
 [CheckList]
-Enable=True
-ListDir="C:\sys\KIRB_Remote\sys\script\DeveloperScript\dev\ISSC\CFG\ListDir1.txt"
-ListFile="C:\sys\KIRB_Remote\sys\script\DeveloperScript\dev\ISSC\CFG\ListFile1.txt"
-ListKey="C:\sys\KIRB_Remote\sys\script\DeveloperScript\dev\ISSC\CFG\ListKey1.txt"
+Enable=true
+ListDir=".\CFG\ListDir1.txt"
+ListFile=".\CFG\ListFile1.txt"
+ListKey=".\CFG\ListKey1.txt"
+
 ```
-##### Раздел [CheckList]
+### Раздел [CheckList]
 В данном разделе указываются списки проверок Директорий, Файлов, Ключей реестра на доступность.
 
 - ListDir Список директорий, которые необходимо проверить на доступность. Просмотреть содерживое этих директорий
 - ListFile Список файлов, которые необходимо проверить на доступность
 - ListKey Список веток реестра и параметров с ключами для проверки их присутствия на тестируемом ПК
 
-#### Запускающий скрипт 
+# Запускающий скрипт 
 
 ```powershell
-<#	
-	.NOTES
-	===========================================================================
-	 Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2020 v5.7.172
-	 Created on:   	29.04.2020 10:08
-	 Created by:   	Nekhoroshev Michael
-	 Organization: 	Nornik
-	 Filename:     	Test-Module.ps1
-	===========================================================================
-	.DESCRIPTION
-	Скрипт для запука  
-#>
 #requires -Version 5
 #requires -RunAsAdministrator
 
-Import-Module -Name "C:\sys\KIRB_Remote\sys\script\DeveloperScript\dev\ISSC\Module\PSWriteExcel"
-
-Import-Module -Name "C:\sys\KIRB_Remote\sys\script\DeveloperScript\dev\ISSC\Module\ISSC"
-
-
+If (-not((Get-Module -Name "PSWriteExcel") -and (Get-Module -Name "ISSC.Main.Lib") -and (Get-Module -Name "ISSC.AD.Lib")-and (Get-Module -Name "ISSC.PowerShell.Archive.Lib") -and (Get-Module -Name "ISSC.Startup.Lib"))){
+           
+           
+            $pathModule =".\Asset\Module\"
+            
+            Import-Module -Name $pathModule"ISSC.Startup.Lib"
+            Import-Module -Name $pathModule"PSWriteExcel"   
+            Import-Module -Name $pathModule"ISSC.Main.Lib"  
+            Import-Module -Name $pathModule"ISSC.AD.Lib\ActiveRoles.ManagementShell.dll" -DisableNameChecking 
+            Import-Module -Name $pathModule"ISSC.PowerShell.Archive.Lib"
+            
+                      
+}
 #Run each module function
 Clear-Host
-start-Inventory -MainFilePath ".\main.ini" -ParamFilePath ".\CFG\Param.ini" -Periodic $true
+start-Inventory -MainFilePath ".\Asset\main.ini" -ParamFilePath ".\Asset\CFG\Param.ini" -Periodic $true
+
+
 # Параметр -Periodic определяет периодичность проверки.
 # Если True - скрипт предназначен для регулярного использования по расписанию
 # Если False - скрипт предназначен для периодического использования. В этом случае после удачной проверки, конфигурационный файл Param_XXX.ini переименовывается в Param_XXX_DateTime.old и при следующие записи расписания скрипт игнорируется, задание завершается успешно.
