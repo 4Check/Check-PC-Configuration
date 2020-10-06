@@ -6,7 +6,7 @@
 - [PSWriteExcel] - [разработка позаимствована из репозитория EvotecIT](https://github.com/EvotecIT/PSWriteExcel)
 - [ISSC.AD.Lib] - [Модуль получение данных из Active Directory. Автор:OneIdentity.com](https://www.oneidentity.com/products/active-roles/)
 - [ISSC.Main.Lib] - Модуль функций получение информации о состоянии компьютера на момент сканирования.
-- [ISSC.PowerShell.Archive.Lib] - [Модуль создания архивных файлов](https://docs.microsoft.com/ru-ru/powershell/module/microsoft.powershell.archive/?view=powershell-5.1)
+- [ISSC.Zip] - [Модуль создания архивных файлов](https://github.com/thoemmi/7Zip4Powershell)
 - [ISSC.Startup.Lib] - Модуль функции запуска сканирования состояния компьютеров
 
 - [AssetInspections.ps1] - Скрипт запуска проверок
@@ -46,7 +46,7 @@
 - [x] Список наличия или отсутствия файлов по списку
 - [x] Список значения ключей реестра по списку
 - [ ] Список значений параметров ГПО по списку
-- [ ] Архивирование результатов после сканирования
+- [x] Архивирование результатов после сканирования
 - [ ] Список пользователей в указанной в списке группе
 
 ### Выгрузка результатов
@@ -83,7 +83,7 @@
 - [x] Get-ComputerProcess - Функция вывода запущенных процессов
 - [x] Get-ComputerService - Функция вывода состояния сервисов
 - [x] Start-Inventory - Функция сбора всех параметров и предоставления объектов для выгрухки в форматы Excel и JSON
-
+- [x] Много еще чего....
 
 # Конфигурационный файл
 Передача переменных осуществляется из *.INI файлов, разделенных на два файла Main.Ini и Param_XXXX.ini
@@ -147,6 +147,12 @@ ListDir=".\CFG\ListDir1.txt"
 ListFile=".\CFG\ListFile1.txt"
 ListKey=".\CFG\ListKey1.txt"
 
+[BackUpResults]
+Enable=True
+BackUpFolders=.\ISSC\Data\BackUp\
+DeleteResult=true
+BackUpFormatDate=yyyyMMdd
+
 ```
 ### Раздел [CheckList]
 В данном разделе указываются списки проверок Директорий, Файлов, Ключей реестра на доступность.
@@ -170,7 +176,7 @@ If (-not((Get-Module -Name "PSWriteExcel") -and (Get-Module -Name "ISSC.Main.Lib
             Import-Module -Name $pathModule"PSWriteExcel"   
             Import-Module -Name $pathModule"ISSC.Main.Lib"  
             Import-Module -Name $pathModule"ISSC.AD.Lib\ActiveRoles.ManagementShell.dll" -DisableNameChecking 
-            Import-Module -Name $pathModule"ISSC.PowerShell.Archive.Lib"
+            Import-Module -Name $pathModule"ISSC.Zip"
             
                       
 }
